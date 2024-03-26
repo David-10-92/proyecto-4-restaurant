@@ -1,6 +1,6 @@
 package com.foodtech.proyecto4restaurant.repositories;
 
-import com.foodtech.proyecto4restaurant.models.allergen.Allergen;
+import com.foodtech.proyecto4restaurant.models.Allergen;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

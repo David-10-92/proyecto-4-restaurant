@@ -1,4 +1,4 @@
-package com.foodtech.proyecto4restaurant.models.dish.dtos;
+package com.foodtech.proyecto4restaurant.dtos;
 
 
 import com.foodtech.proyecto4restaurant.models.AmountOfIngredient;

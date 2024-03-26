@@ -1,5 +1,6 @@
 package com.foodtech.proyecto4restaurant.dtos;
 
+import com.foodtech.proyecto4restaurant.models.Allergen;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,5 +20,5 @@ public class UpdateIngredient {
 //    Indica el valor de venta de una unidad de este ingrediente cuando se incluye en un plato
     private BigDecimal sellPrice;
 //    Lista de alérgenos presentes en el alimento
-    private List<String> allergens;
+    private List<Allergen> allergens;
 }

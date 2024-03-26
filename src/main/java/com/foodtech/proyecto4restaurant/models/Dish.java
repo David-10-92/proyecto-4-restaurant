@@ -1,4 +1,4 @@
-package com.foodtech.proyecto4restaurant.models.dish;
+package com.foodtech.proyecto4restaurant.models;
 
 import com.foodtech.proyecto4restaurant.models.AmountOfIngredient;
 import jakarta.persistence.*;
@@ -25,6 +25,6 @@ public class Dish {
     //    Indica el número de comensales indicados para este plato (orientativo)
     private Integer dinners;
     //    Lista de ingredientes que incorpora este plato
-    @OneToMany
+
     private List<AmountOfIngredient> ingredients;
 }

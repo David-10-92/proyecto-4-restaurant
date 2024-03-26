@@ -1,4 +1,4 @@
-package com.foodtech.proyecto4restaurant.models.allergen.dtos;
+package com.foodtech.proyecto4restaurant.dtos;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

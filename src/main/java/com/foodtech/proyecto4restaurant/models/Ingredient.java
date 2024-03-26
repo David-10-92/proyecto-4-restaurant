@@ -1,6 +1,5 @@
 package com.foodtech.proyecto4restaurant.models;
 
-import com.foodtech.proyecto4restaurant.models.allergen.Allergen;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
