@@ -5,10 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
-@Table
 @Entity
 public class Measure {
 //    Identificador único de la medida
@@ -17,4 +18,8 @@ public class Measure {
     private Integer id;
 //    Nombre de la unidad
     private String name;
+
+    @OneToMany(mappedBy = "measureId")
+    private List<Ingredient> ingredients;
+
 }

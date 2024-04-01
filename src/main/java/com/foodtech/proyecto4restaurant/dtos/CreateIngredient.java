@@ -1,6 +1,7 @@
 package com.foodtech.proyecto4restaurant.dtos;
 
 import com.foodtech.proyecto4restaurant.models.Allergen;
+import com.foodtech.proyecto4restaurant.models.Measure;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -14,5 +14,4 @@ public class AllergenDetails_allOf_presentIn {
     private Integer id;
 //    Nombre del plato
     private String name;
-
 }

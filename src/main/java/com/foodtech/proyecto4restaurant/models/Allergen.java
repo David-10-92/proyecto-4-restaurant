@@ -5,10 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
-@Table
 @Entity
 public class Allergen {
 //    Identificador del alérgeno
@@ -17,4 +18,6 @@ public class Allergen {
     private Integer id;
 //    Nombre del alérgeno
     private String name;
+    @ManyToMany(mappedBy = "allergens")
+    private List<Ingredient> ingredients;
 }

@@ -10,12 +10,20 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @Entity
+@Table
 public class AmountOfIngredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-//    Identificador del ingrediente
-    private Integer ingredientId;
-//    Indica cuantas unidades de la medida indicada se usarán del ingrediente dado
+
+    @ManyToOne
+    @JoinColumn(name = "ingredient_id")
+    private Ingredient ingredient;
+
+    @ManyToOne
+    @JoinColumn(name = "dish_id")
+    private Dish dish;
+
+//  Indica cuantas unidades de la medida indicada se usarán del ingrediente dado
     private BigDecimal value;
 }

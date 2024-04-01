@@ -5,6 +5,7 @@ import com.foodtech.proyecto4restaurant.models.Allergen;
 import com.foodtech.proyecto4restaurant.dtos.AllergenDetails;
 import com.foodtech.proyecto4restaurant.dtos.CreateAllergen;
 import com.foodtech.proyecto4restaurant.dtos.UpdateAllergen;
+import com.foodtech.proyecto4restaurant.models.AmountOfIngredient;
 import com.foodtech.proyecto4restaurant.models.Dish;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.DishRepository;
@@ -12,10 +13,11 @@ import com.foodtech.proyecto4restaurant.services.AllergenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Service
 public class AllergenServiceImpl implements AllergenService{
 
     @Autowired
@@ -31,6 +33,14 @@ public class AllergenServiceImpl implements AllergenService{
     }
 
     @Override
+    public String deleteAllergen(Integer id) {
+        return allergenRepository.findById(id).map(allergen -> {
+            allergenRepository.deleteById(id);
+            return ("El alergeno se ha eliminado correctamente");
+        }).orElse("No se encontró ningún allergeno con el ID proporcionado");
+    }
+
+    @Override
     public AllergenDetails getAllergen(Integer id) {
         Optional<Allergen> optionalAllergen = allergenRepository.findById(id);
         if (optionalAllergen.isPresent()) {
@@ -38,10 +48,27 @@ public class AllergenServiceImpl implements AllergenService{
             AllergenDetails allergenDetails = new AllergenDetails();
             allergenDetails.setId(allergen.getId());
             allergenDetails.setName(allergen.getName());
-            //No se como sacar la lista por que es una lista con un objeto de otro tipo y no se si con los
-            //mapeos que tengo esta comunicado con tantas clases estoy un poco perdido jaja
+            allergenDetails.setPresentIn(getPlatesWithAllergen(allergen));
+            return allergenDetails;
         }
-            return null;
+        return null;
+    }
+
+    private List<AllergenDetails_allOf_presentIn> getPlatesWithAllergen(Allergen allergen) {
+        List<AllergenDetails_allOf_presentIn> presentInList = new ArrayList<>();
+        List<Dish> allDishes = dishRepository.findAll();
+        for (Dish dish : allDishes) {
+            for (AmountOfIngredient amountOfIngredient : dish.getAmountsOfIngredients()) {
+                if (amountOfIngredient.getIngredient().getAllergens().contains(allergen)) {
+                    AllergenDetails_allOf_presentIn presentIn = new AllergenDetails_allOf_presentIn();
+                    presentIn.setId(dish.getId());
+                    presentIn.setName(dish.getName());
+                    presentInList.add(presentIn);
+                    break; // No es necesario seguir verificando los ingredientes una vez que se encuentra el alérgeno en un plato
+                }
+            }
+        }
+        return presentInList;
     }
 
     @Override

@@ -11,7 +11,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table
 @Entity
 public class Dish {
     //    Identificador único del plato
@@ -25,6 +24,6 @@ public class Dish {
     //    Indica el número de comensales indicados para este plato (orientativo)
     private Integer dinners;
     //    Lista de ingredientes que incorpora este plato
-
-    private List<AmountOfIngredient> ingredients;
+    @OneToMany(mappedBy = "dish")
+    private List<AmountOfIngredient> amountsOfIngredients;
 }

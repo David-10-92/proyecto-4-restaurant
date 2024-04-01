@@ -2,38 +2,31 @@ package com.foodtech.proyecto4restaurant.services.impl;
 
 import com.foodtech.proyecto4restaurant.dtos.CreateMeasure;
 import com.foodtech.proyecto4restaurant.dtos.MeasureDetails;
+import com.foodtech.proyecto4restaurant.dtos.MeasureDetails_allOf_ingredients;
 import com.foodtech.proyecto4restaurant.dtos.UpdateMeasure;
+import com.foodtech.proyecto4restaurant.models.Ingredient;
 import com.foodtech.proyecto4restaurant.models.Measure;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.MeasureRepository;
 import com.foodtech.proyecto4restaurant.services.MeasureService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@Service
 public class MeasureServiceImpl implements MeasureService {
 
     @Autowired
     MeasureRepository measureRepository;
-    @Autowired
-    AllergenRepository allergenRepository;
+
     @Override
     public String addMeasure(CreateMeasure createMeasure) {
         Measure measure = new Measure();
         measure.setName(createMeasure.getName());
         measureRepository.save(measure);
         return measure.getName();
-    }
-
-    @Override
-    public String deleteAllergen(Integer id) {
-        return allergenRepository.findById(id).map(allergen -> {
-            allergenRepository.deleteById(id);
-            return ("El alergeno se ha eliminado correctamente");
-        }).orElse("No se encontró ningún allergeno con el ID proporcionado");
     }
 
     @Override
@@ -48,13 +41,29 @@ public class MeasureServiceImpl implements MeasureService {
     @Override
     public MeasureDetails getMeasure(Integer id) {
         Optional<Measure> optionalMeasure = measureRepository.findById(id);
+
         if (optionalMeasure.isPresent()) {
             Measure measure = optionalMeasure.get();
             MeasureDetails measureDetails = new MeasureDetails();
+
+            // Establecer los detalles de la medida
             measureDetails.setId(measure.getId());
             measureDetails.setName(measure.getName());
-            //aqui el mismo prblema de siempre no se como hacerlo por que estoy algo perdido
-            //la lista esta formada de otra clase que no se donde colocarla si model o dto
+
+            // Obtener la lista de ingredientes que usan esta medida
+            List<Ingredient> ingredients = measure.getIngredients();
+            List<MeasureDetails_allOf_ingredients> ingredientsDetails = ingredients.stream()
+                    .map(ingredient -> {
+                        MeasureDetails_allOf_ingredients ingredientDetails = new MeasureDetails_allOf_ingredients();
+                        ingredientDetails.setId(ingredient.getId());
+                        ingredientDetails.setName(ingredient.getName());
+                        return ingredientDetails;
+                    })
+                    .collect(Collectors.toList());
+
+            // Establecer la lista de ingredientes en los detalles de la medida
+            measureDetails.setIngredients(ingredientsDetails);
+
             return measureDetails;
         } else {
             return null;

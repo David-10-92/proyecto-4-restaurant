@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface MeasureService {
     String addMeasure(CreateMeasure createMeasure);
-    String deleteAllergen(Integer id);
     String deleteMeasure(Integer id);
     MeasureDetails getMeasure(Integer id);
     List<Measure> listMeasures(String filter);

@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface AllergenService{
     String addAllergen(CreateAllergen createAllergen);
+    String deleteAllergen(Integer id);
     AllergenDetails getAllergen(Integer id);
     List<Allergen> listAllergens(String filter);
     String updateAllergen(Integer id, UpdateAllergen updateAllergen);

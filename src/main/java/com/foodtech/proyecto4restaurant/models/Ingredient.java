@@ -10,7 +10,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table
 @Entity
 public class Ingredient {
 //    Identificador del ingrediente
@@ -19,14 +18,19 @@ public class Ingredient {
     private Integer id;
 //    Nombre del ingrediente
     private String name;
+    @OneToOne
 //    Identificador de la unidad de medida en la que se administra este ingrediente
-    private Integer measureId;
+    private Measure measureId;
 //    Indica el valor del precio de compra de cada unidad de este ingrediente.
     private BigDecimal purchasePrice;
 //    Indica el valor de venta de una unidad de este ingrediente cuando se incluye en un plato.
     private BigDecimal sellPrice;
+
+    @OneToMany(mappedBy = "ingredient")
+    private List<AmountOfIngredient> amountsInDishes;
+
 //    Lista de alérgenos presentes en el alimento
-    @OneToMany
+    @ManyToMany
     @JoinTable(
             name = "ingredient_allergen",
             joinColumns = @JoinColumn(name = "ingredient_id"),
