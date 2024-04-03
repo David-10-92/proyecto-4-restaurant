@@ -20,7 +20,7 @@ public class IngredientDetails {
 //    Indica el valor de venta de una unidad de este ingrediente cuando se incluye en un plato
     private BigDecimal sellPrice;
 //    Lista de alérgenos
-    private List<Allergen> allergens;
+    private List<AllergenDTO> allergens;
 //    Lista de platos en los que se usa
     private List<AllergenDetails_allOf_presentIn> usedIn;
 }

@@ -1,6 +1,6 @@
 package com.foodtech.proyecto4restaurant.dtos;
 
-import com.foodtech.proyecto4restaurant.models.AmountOfIngredient;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,5 +17,5 @@ public class CreateDish {
 //    Indica el número de comensales indicados para este plato (orientativo)
     private Integer dinners;
 //    Lista de ingredientes que incorpora este plato
-    private List<AmountOfIngredient> ingredients;
+    private List<AmountOfIngredientDto> ingredients;
 }

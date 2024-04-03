@@ -11,6 +11,6 @@ public interface IngredientService {
     String addIngredient(CreateIngredient createIngredient);
     String deleteIngredient(Integer id);
     IngredientDetails getIngredient(Integer id);
-    List<Ingredient> listIngredients(String filter);
+    List<IngredientDetails> listIngredients(String filter);
     String updateIngredient(Integer id, UpdateIngredient updateIngredient);
 }

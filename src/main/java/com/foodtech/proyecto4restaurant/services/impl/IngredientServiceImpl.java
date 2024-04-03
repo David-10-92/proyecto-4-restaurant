@@ -1,9 +1,6 @@
 package com.foodtech.proyecto4restaurant.services.impl;
 
-import com.foodtech.proyecto4restaurant.dtos.AllergenDetails_allOf_presentIn;
-import com.foodtech.proyecto4restaurant.dtos.CreateIngredient;
-import com.foodtech.proyecto4restaurant.dtos.IngredientDetails;
-import com.foodtech.proyecto4restaurant.dtos.UpdateIngredient;
+import com.foodtech.proyecto4restaurant.dtos.*;
 import com.foodtech.proyecto4restaurant.models.*;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.IngredientRepository;
@@ -14,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,16 +79,30 @@ public class IngredientServiceImpl implements IngredientService {
             Ingredient ingredient = optionalIngredient.get();
             IngredientDetails ingredientDetails = new IngredientDetails();
             ingredientDetails.setName(ingredient.getName());
-            //probando get id
             ingredientDetails.setMeasureId(ingredient.getMeasureId().getId());
             ingredientDetails.setPurchasePrice(ingredient.getPurchasePrice());
             ingredientDetails.setSellPrice(ingredient.getSellPrice());
-            ingredientDetails.setAllergens(ingredient.getAllergens());
+
+            // Mapear cada Allergen a AllergenDTO
+            List<AllergenDTO> allergenDTOs = ingredient.getAllergens().stream()
+                    .map(this::mapAllergenToDTO)
+                    .collect(Collectors.toList());
+
+            ingredientDetails.setAllergens(allergenDTOs);
             ingredientDetails.setUsedIn(getPlatesUsingIngredient(ingredient));
+
             return ingredientDetails;
         } else {
             return null;
         }
+    }
+
+    // Método para mapear un Allergen a un AllergenDTO
+    public AllergenDTO mapAllergenToDTO(Allergen allergen) {
+        AllergenDTO allergenDTO = new AllergenDTO();
+        allergenDTO.setId(allergen.getId());
+        allergenDTO.setName(allergen.getName());
+        return allergenDTO;
     }
 
     private List<AllergenDetails_allOf_presentIn> getPlatesUsingIngredient(Ingredient ingredient) {
@@ -104,8 +117,25 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
-    public List<Ingredient> listIngredients(String filter) {
+    public List<IngredientDetails> listIngredients(String filter) {
         List<Ingredient> allIngredients = ingredientRepository.findAll();
+
+        // Función para convertir un Ingredient en un IngredientDetails
+        Function<Ingredient, IngredientDetails> ingredientToDetails = ingredient -> {
+            IngredientDetails ingredientDetails = new IngredientDetails();
+            ingredientDetails.setName(ingredient.getName());
+            ingredientDetails.setMeasureId(ingredient.getMeasureId().getId());
+            ingredientDetails.setPurchasePrice(ingredient.getPurchasePrice());
+            ingredientDetails.setSellPrice(ingredient.getSellPrice());
+
+            // Convertir cada Allergen a AllergenDTO
+            List<AllergenDTO> allergenDTOs = ingredient.getAllergens().stream()
+                    .map(this::mapAllergenToDTO) // Usa el método de mapeo de Allergen a AllergenDTO
+                    .collect(Collectors.toList());
+            ingredientDetails.setAllergens(allergenDTOs);
+
+            return ingredientDetails;
+        };
 
         if (filter != null && !filter.isEmpty()) {
             String filterLower = filter.toLowerCase();
@@ -119,13 +149,15 @@ public class IngredientServiceImpl implements IngredientService {
                                 .anyMatch(allergen -> allergen.getName().toLowerCase().contains(filterLower));
 
                         // Retornar verdadero si alguna de las condiciones coincide
-                        return nameMatch && allergenMatch;
+                        return nameMatch || allergenMatch;
                     })
+                    .map(ingredientToDetails) // Convertir Ingredient a IngredientDetails
                     .collect(Collectors.toList());
         } else {
-            // Devolver la lista completa de ingredientes ordenada
+            // Devolver la lista completa de ingredientes ordenada y convertida a IngredientDetails
             return allIngredients.stream()
-                    .sorted(Comparator.comparing(Ingredient::getName))
+                    .map(ingredientToDetails) // Convertir Ingredient a IngredientDetails
+                    .sorted(Comparator.comparing(IngredientDetails::getName))
                     .collect(Collectors.toList());
         }
     }

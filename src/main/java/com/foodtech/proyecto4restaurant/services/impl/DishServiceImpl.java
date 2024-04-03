@@ -6,6 +6,7 @@ import com.foodtech.proyecto4restaurant.models.AmountOfIngredient;
 import com.foodtech.proyecto4restaurant.models.Dish;
 import com.foodtech.proyecto4restaurant.models.Ingredient;
 import com.foodtech.proyecto4restaurant.repositories.DishRepository;
+import com.foodtech.proyecto4restaurant.repositories.IngredientRepository;
 import com.foodtech.proyecto4restaurant.services.DishService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,16 +24,60 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     DishRepository dishRepository;
+    @Autowired
+    IngredientRepository ingredientRepository;
 
     @Override
     public String addDish(CreateDish createDish) {
+        // Paso 1: Crear un objeto Dish a partir del DTO CreateDish
+        Dish dish = createDishFromDto(createDish);
+        // Paso 2: Crear una lista de objetos AmountOfIngredient a partir de los DTOs de ingredientes
+        List<AmountOfIngredient> amountsOfIngredients = createAmountsOfIngredients(createDish.getIngredients(), dish);
+        // Paso 3: Asignar la lista de objetos AmountOfIngredient al plato (Dish)
+        dish.setAmountsOfIngredients(amountsOfIngredients);
+        // Paso 4: Guardar el plato en la base de datos
+        dishRepository.save(dish);
+        // Paso 5: Devolver el nombre del plato creado
+        return dish.getName();
+    }
+
+    // Método para crear un objeto Dish a partir de un DTO CreateDish
+    private Dish createDishFromDto(CreateDish createDish) {
         Dish dish = new Dish();
         dish.setName(createDish.getName());
         dish.setDescription(createDish.getDescription());
         dish.setDinners(createDish.getDinners());
-        dish.setAmountsOfIngredients(createDish.getIngredients());
-        dishRepository.save(dish);
-        return dish.getName();
+        return dish;
+    }
+
+    // Método para crear una lista de objetos AmountOfIngredient a partir de los DTOs de ingredientes
+    private List<AmountOfIngredient> createAmountsOfIngredients(List<AmountOfIngredientDto> ingredientDtos, Dish dish) {
+        List<AmountOfIngredient> amountsOfIngredients = new ArrayList<>();
+        for (AmountOfIngredientDto ingredientDto : ingredientDtos) {
+            AmountOfIngredient amountOfIngredient = createAmountOfIngredientFromDto(ingredientDto, dish);
+            amountsOfIngredients.add(amountOfIngredient);
+        }
+        return amountsOfIngredients;
+    }
+
+    // Método para crear un objeto AmountOfIngredient a partir de un DTO de ingrediente
+    private AmountOfIngredient createAmountOfIngredientFromDto(AmountOfIngredientDto ingredientDto, Dish dish) {
+        Integer ingredientId = ingredientDto.getIngredientId();
+        BigDecimal value = ingredientDto.getValue();
+        // Obtener el ingrediente de la base de datos según su ID
+        Ingredient ingredient = getIngredientById(ingredientId);
+        // Crear el objeto AmountOfIngredient
+        AmountOfIngredient amountOfIngredient = new AmountOfIngredient();
+        amountOfIngredient.setIngredient(ingredient);
+        amountOfIngredient.setValue(value);
+        amountOfIngredient.setDish(dish);
+        return amountOfIngredient;
+    }
+
+    // Método para obtener un ingrediente de la base de datos según su ID
+    private Ingredient getIngredientById(Integer ingredientId) {
+        return ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new RuntimeException("El ingrediente con ID " + ingredientId + " no existe."));
     }
 
     @Override
@@ -53,8 +98,12 @@ public class DishServiceImpl implements DishService {
             dishDetails.setId(dish.getId());
             dishDetails.setName(dish.getName());
             dishDetails.setDinners(dish.getDinners());
-            dishDetails.setBuyPrice(calculateBuyPrice(dish));
-            dishDetails.setSellPrice(calculateBuyPrice(dish).add(new BigDecimal("15")));
+
+            BigDecimal buyPrice = calculateBuyPrice(dish); // Calcula el precio de compra
+            BigDecimal sellPrice = calculateSellPrice(dish); // Calcula el precio de venta
+
+            dishDetails.setBuyPrice(buyPrice);
+            dishDetails.setSellPrice(sellPrice);
             dishDetails.setIngredients(mapIngredients(dish.getAmountsOfIngredients()));
             dishDetails.setAllergens(mapAllergens(dish.getAmountsOfIngredients()));
             return dishDetails;
@@ -62,6 +111,7 @@ public class DishServiceImpl implements DishService {
         return null;
     }
 
+    // Método para calcular el precio total de compra del plato
     private BigDecimal calculateBuyPrice(Dish dish) {
         BigDecimal buyPrice = BigDecimal.ZERO;
         for (AmountOfIngredient amountOfIngredient : dish.getAmountsOfIngredients()) {
@@ -73,6 +123,19 @@ public class DishServiceImpl implements DishService {
         return buyPrice;
     }
 
+    // Método para calcular el precio total de venta del plato
+    private BigDecimal calculateSellPrice(Dish dish) {
+        BigDecimal sellPrice = BigDecimal.ZERO;
+        for (AmountOfIngredient amountOfIngredient : dish.getAmountsOfIngredients()) {
+            BigDecimal ingredientPrice = amountOfIngredient.getIngredient().getSellPrice();
+            BigDecimal ingredientQuantity = amountOfIngredient.getValue();
+            BigDecimal totalPriceForIngredient = ingredientPrice.multiply(ingredientQuantity);
+            sellPrice = sellPrice.add(totalPriceForIngredient);
+        }
+        return sellPrice;
+    }
+
+    // Método para mapear los ingredientes del plato a la clase interna DishDetails_ingredients_inner
     private List<DishDetails_ingredients_inner> mapIngredients(List<AmountOfIngredient> amountsOfIngredients) {
         List<DishDetails_ingredients_inner> ingredientsList = new ArrayList<>();
         for (AmountOfIngredient amountOfIngredient : amountsOfIngredients) {
@@ -84,6 +147,7 @@ public class DishServiceImpl implements DishService {
         return ingredientsList;
     }
 
+    // Método para mapear los alérgenos del plato a la clase interna DishDetails_allergens_inner
     private List<DishDetails_allergens_inner> mapAllergens(List<AmountOfIngredient> amountsOfIngredients) {
         List<DishDetails_allergens_inner> allergensList = new ArrayList<>();
         for (AmountOfIngredient amountOfIngredient : amountsOfIngredients) {
