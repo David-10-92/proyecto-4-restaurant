@@ -9,6 +9,8 @@ import com.foodtech.proyecto4restaurant.models.Measure;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.MeasureRepository;
 import com.foodtech.proyecto4restaurant.services.MeasureService;
+import com.foodtech.proyecto4restaurant.services.errors.ErrorCode;
+import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,9 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Override
     public String addMeasure(CreateMeasure createMeasure) {
+        if (createMeasure.getName() == null || createMeasure.getName().isEmpty()) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El nombre de la medida no puede estar vacío");
+        }
         Measure measure = new Measure();
         measure.setName(createMeasure.getName());
         measureRepository.save(measure);
@@ -31,15 +36,22 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Override
     public String deleteMeasure(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID de la medida es inválido");
+        }
         return measureRepository.findById(id)
                 .map(measure -> {
                     measureRepository.deleteById(id);
                     return ("La medida ha sido eliminada correctamente");
-                }).orElse("No se encontró ninguna medida con el ID proporcionado");
+                })
+                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ninguna medida con el ID proporcionado"));
     }
 
     @Override
     public MeasureDetails getMeasure(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID de la medida es inválida");
+        }
         Optional<Measure> optionalMeasure = measureRepository.findById(id);
 
         if (optionalMeasure.isPresent()) {
@@ -66,7 +78,7 @@ public class MeasureServiceImpl implements MeasureService {
 
             return measureDetails;
         } else {
-            return null;
+            throw  new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ninguna medida con el ID proporcionado");
         }
     }
 
@@ -87,6 +99,9 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Override
     public String updateMeasure(Integer id, UpdateMeasure updateMeasure) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID de la medida es inválido");
+        }
         return measureRepository.findById(id)
                 .map(measure -> {
                     if (updateMeasure.getName() != null) {
@@ -94,6 +109,7 @@ public class MeasureServiceImpl implements MeasureService {
                     }
                     measureRepository.save(measure);
                     return "La medida se ha actualizado correctamente";
-                }).orElse("No se encontró ninguna medida con el ID proporcionado");
+                })
+                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ninguna medida con el ID proporcionado"));
     }
 }

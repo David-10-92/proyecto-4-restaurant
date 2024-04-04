@@ -8,6 +8,8 @@ import com.foodtech.proyecto4restaurant.models.Ingredient;
 import com.foodtech.proyecto4restaurant.repositories.DishRepository;
 import com.foodtech.proyecto4restaurant.repositories.IngredientRepository;
 import com.foodtech.proyecto4restaurant.services.DishService;
+import com.foodtech.proyecto4restaurant.services.errors.ErrorCode;
+import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,15 +31,15 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public String addDish(CreateDish createDish) {
-        // Paso 1: Crear un objeto Dish a partir del DTO CreateDish
+        if (createDish == null || createDish.getName() == null || createDish.getName().isEmpty() ||
+                createDish.getDescription() == null || createDish.getDescription().isEmpty() ||
+                createDish.getDinners() == null || createDish.getIngredients() == null || createDish.getIngredients().isEmpty()) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "Los campos del plato son inválidos o están vacíos");
+        }
         Dish dish = createDishFromDto(createDish);
-        // Paso 2: Crear una lista de objetos AmountOfIngredient a partir de los DTOs de ingredientes
         List<AmountOfIngredient> amountsOfIngredients = createAmountsOfIngredients(createDish.getIngredients(), dish);
-        // Paso 3: Asignar la lista de objetos AmountOfIngredient al plato (Dish)
         dish.setAmountsOfIngredients(amountsOfIngredients);
-        // Paso 4: Guardar el plato en la base de datos
         dishRepository.save(dish);
-        // Paso 5: Devolver el nombre del plato creado
         return dish.getName();
     }
 
@@ -77,20 +79,26 @@ public class DishServiceImpl implements DishService {
     // Método para obtener un ingrediente de la base de datos según su ID
     private Ingredient getIngredientById(Integer ingredientId) {
         return ingredientRepository.findById(ingredientId)
-                .orElseThrow(() -> new RuntimeException("El ingrediente con ID " + ingredientId + " no existe."));
+                .orElseThrow(() -> new ServiceError(ErrorCode.INVALID_INPUT,"El ingrediente con ID " + ingredientId + " no existe."));
     }
 
     @Override
     public String deleteDish(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del plato es inválido");
+        }
         Optional<Dish> optionalDish = dishRepository.findById(id);
         return optionalDish.map(dish -> {
             dishRepository.deleteById(id);
             return "El plato se ha eliminado correctamente";
-        }).orElse("No se encontró ningún plato con el ID proporcionado");
+        }).orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ningún plato con el ID proporcionado"));
     }
 
     @Override
     public DishDetails getDish(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del plato es inválido");
+        }
         Optional<Dish> optionalDish = dishRepository.findById(id);
         if (optionalDish.isPresent()) {
             Dish dish = optionalDish.get();
@@ -107,8 +115,10 @@ public class DishServiceImpl implements DishService {
             dishDetails.setIngredients(mapIngredients(dish.getAmountsOfIngredients()));
             dishDetails.setAllergens(mapAllergens(dish.getAmountsOfIngredients()));
             return dishDetails;
+        }else{
+            throw new ServiceError(ErrorCode.RESOURCE_NOT_FOUND,"No se encontró ningún plato con el ID proporcionado");
         }
-        return null;
+
     }
 
     // Método para calcular el precio total de compra del plato
@@ -165,6 +175,9 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public DishSearchResult searchDish(Integer recordsPerpage, Integer page, String filter) {
+        if (recordsPerpage == null || recordsPerpage <= 0 || page == null || page <= 0) {
+            throw new IllegalArgumentException("Los parámetros recordsPerPage y page deben ser valores enteros positivos.");
+        }
         // Definir el número de página a partir de la página solicitada
         int pageNumber = (page != null && page >= 1) ? page - 1 : 0;
 
@@ -190,6 +203,9 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public String updateDish(Integer id, UpdateDish updateDish) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del plato es inválido");
+        }
         return dishRepository.findById(id)
                 .map(dish -> {
                     if (updateDish.getName() != null) {
@@ -207,6 +223,6 @@ public class DishServiceImpl implements DishService {
                     dishRepository.save(dish);
                     return "El plato se ha actualizado correctamente";
                 })
-                .orElse("No se encontró ningún plato con el ID proporcionado");
+                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ningún plato con el ID proporcionado"));
     }
 }
