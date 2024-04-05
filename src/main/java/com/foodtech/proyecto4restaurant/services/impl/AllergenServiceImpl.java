@@ -81,17 +81,26 @@ public class AllergenServiceImpl implements AllergenService{
     }
 
     @Override
-    public List<Allergen> listAllergens(String filter) {
+    public List<AllergenDetails> listAllergens(String filter) {
         List<Allergen> filterAllergens;
         if (filter != null && !filter.isEmpty()) {
-            filterAllergens = allergenRepository.findAll().stream()
-                    .filter(allergen -> allergen.getName().toLowerCase().contains(filter.toLowerCase()))
-                    .sorted(Comparator.comparing(Allergen::getName))
-                    .collect(Collectors.toList());
+            filterAllergens = allergenRepository.findByNameContainingIgnoreCase(filter);
         } else {
             filterAllergens = allergenRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
         }
-        return filterAllergens;
+        return filterAllergens.stream()
+                .map(this::mapToAllergenDetails)
+                .collect(Collectors.toList());
+    }
+
+    private AllergenDetails mapToAllergenDetails(Allergen allergen) {
+        AllergenDetails allergenDetails = new AllergenDetails();
+        allergenDetails.setId(allergen.getId());
+        allergenDetails.setName(allergen.getName());
+        // Aquí debes completar la lógica para obtener los platos donde el alérgeno está presente
+        // List<Dish> dishes = getDishesByAllergen(allergen);
+        // allergenDetails.setPresentIn(mapDishesToAllergenDetails(dishes));
+        return allergenDetails;
     }
 
     @Override

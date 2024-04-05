@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
@@ -24,27 +25,27 @@ public class DishController {
     @Autowired
     DishService dishService;
     @PostMapping("/dishes")
-    public ResponseEntity addDish(@RequestBody CreateDish createDish) {
+    public ResponseEntity<String> addDish(@RequestBody CreateDish createDish) {
         return handleRequest( ()-> dishService.addDish(createDish));
     }
 
     @DeleteMapping("/dishes/{id}")
-    public ResponseEntity<AllergenDetails> deleteDish(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteDish(@PathVariable Integer id) {
         return handleRequest( ()-> dishService.deleteDish(id));
     }
 
     @GetMapping("/dishes/{id}")
-    public ResponseEntity<AllergenDetails> getDish(@PathVariable Integer id) {
+    public ResponseEntity<DishDetails> getDish(@PathVariable Integer id) {
         return handleRequest( ()-> dishService.getDish(id));
     }
 
     @GetMapping("/dishes")
-    public ResponseEntity<AllergenDetails> searchDish(Integer recordsPerpage, Integer page, String filter) {
+    public ResponseEntity<DishSearchResult> searchDish(Integer recordsPerpage, Integer page, String filter) {
         return handleRequest( ()-> dishService.searchDish(recordsPerpage,page,filter));
     }
 
     @PutMapping("/dishes/{id}")
-    public ResponseEntity<AllergenDetails> updateDish(@PathVariable Integer id,@RequestBody UpdateDish updateDish) {
+    public ResponseEntity<String> updateDish(@PathVariable Integer id,@RequestBody UpdateDish updateDish) {
         return handleRequest( ()-> dishService.updateDish(id,updateDish));
     }
 }

@@ -10,4 +10,5 @@ public interface AllergenRepository extends JpaRepository<Allergen,Integer> {
     List<Allergen> findByNameContaining(String filter);
     Optional<Allergen> findByName(String name);
 
+    List<Allergen> findByNameContainingIgnoreCase(String filter);
 }

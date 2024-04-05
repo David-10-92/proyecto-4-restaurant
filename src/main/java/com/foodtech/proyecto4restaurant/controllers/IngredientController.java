@@ -8,10 +8,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/restaurant")
 public class IngredientController {
 
     private <T> ResponseEntity handleRequest(Supplier<T> supplier){
@@ -26,27 +27,27 @@ public class IngredientController {
     IngredientService ingredientService;
 
     @PostMapping("/ingredients")
-    public ResponseEntity addIngredient(@RequestBody CreateIngredient createIngredient) {
+    public ResponseEntity<String> addIngredient(@RequestBody CreateIngredient createIngredient) {
         return handleRequest( ()-> ingredientService.addIngredient(createIngredient));
     }
 
     @DeleteMapping("/ingredients/{id}")
-    public ResponseEntity<AllergenDetails> deleteIngredient(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> ingredientService.deleteIngredient(id));
     }
 
     @GetMapping("/ingredients/{id}")
-    public ResponseEntity<AllergenDetails> getIngredient(@PathVariable Integer id) {
+    public ResponseEntity<IngredientDetails> getIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> ingredientService.getIngredient(id));
     }
 
     @GetMapping("/ingredients")
-    public ResponseEntity<AllergenDetails> listIngredients(String filter) {
+    public ResponseEntity<List<IngredientDetails>> listIngredients(String filter) {
         return handleRequest( ()-> ingredientService.listIngredients(filter));
     }
 
     @PutMapping("/ingredients/{id}")
-    public ResponseEntity<AllergenDetails> updateIngredient(@PathVariable Integer id,@RequestBody UpdateIngredient updateIngredient) {
+    public ResponseEntity<String> updateIngredient(@PathVariable Integer id,@RequestBody UpdateIngredient updateIngredient) {
         return handleRequest( ()-> ingredientService.updateIngredient(id,updateIngredient));
     }
 }

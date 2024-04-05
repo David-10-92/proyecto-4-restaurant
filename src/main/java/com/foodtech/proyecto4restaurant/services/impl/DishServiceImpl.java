@@ -36,10 +36,24 @@ public class DishServiceImpl implements DishService {
                 createDish.getDinners() == null || createDish.getIngredients() == null || createDish.getIngredients().isEmpty()) {
             throw new ServiceError(ErrorCode.INVALID_INPUT, "Los campos del plato son inválidos o están vacíos");
         }
-        Dish dish = createDishFromDto(createDish);
+        /*Dish dish = createDishFromDto(createDish);
         List<AmountOfIngredient> amountsOfIngredients = createAmountsOfIngredients(createDish.getIngredients(), dish);
         dish.setAmountsOfIngredients(amountsOfIngredients);
         dishRepository.save(dish);
+        return dish.getName();*/
+        // Crear un objeto Dish a partir de los datos proporcionados
+        Dish dish = createDishFromDto(createDish);
+
+        // Crear una lista de AmountOfIngredient a partir de los ingredientes proporcionados
+        List<AmountOfIngredient> amountsOfIngredients = createAmountsOfIngredients(createDish.getIngredients(), dish);
+
+        // Establecer la lista de AmountOfIngredient en el objeto Dish
+        dish.setAmountsOfIngredients(amountsOfIngredients);
+
+        // Guardar el objeto Dish en la base de datos
+        dishRepository.save(dish);
+
+        // Retornar el nombre del plato creado
         return dish.getName();
     }
 
@@ -66,8 +80,10 @@ public class DishServiceImpl implements DishService {
     private AmountOfIngredient createAmountOfIngredientFromDto(AmountOfIngredientDto ingredientDto, Dish dish) {
         Integer ingredientId = ingredientDto.getIngredientId();
         BigDecimal value = ingredientDto.getValue();
+
         // Obtener el ingrediente de la base de datos según su ID
         Ingredient ingredient = getIngredientById(ingredientId);
+
         // Crear el objeto AmountOfIngredient
         AmountOfIngredient amountOfIngredient = new AmountOfIngredient();
         amountOfIngredient.setIngredient(ingredient);
@@ -175,16 +191,9 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public DishSearchResult searchDish(Integer recordsPerpage, Integer page, String filter) {
-        if (recordsPerpage == null || recordsPerpage <= 0 || page == null || page <= 0) {
-            throw new IllegalArgumentException("Los parámetros recordsPerPage y page deben ser valores enteros positivos.");
-        }
-        // Definir el número de página a partir de la página solicitada
         int pageNumber = (page != null && page >= 1) ? page - 1 : 0;
-
-        // Definir el número de registros por página
         int pageSize = (recordsPerpage != null && recordsPerpage >= 1) ? recordsPerpage : 10;
 
-        // Realizar la búsqueda de platos con paginación y filtrado
         Page<Dish> dishPage;
         if (filter != null && !filter.isEmpty()) {
             dishPage = (Page<Dish>) dishRepository.findByNameContainingIgnoreCase(filter, PageRequest.of(pageNumber, pageSize));
@@ -192,13 +201,30 @@ public class DishServiceImpl implements DishService {
             dishPage = dishRepository.findAll(PageRequest.of(pageNumber, pageSize));
         }
 
-        // Construir el objeto DishSearchResult
+        // Transformar los registros de Dish a DishSearchResultItem y asignar el precio de venta
+        List<DishSearchResultItem> searchResultItems = dishPage.getContent().stream()
+                .map(this::mapDishToSearchResultItem)
+                .collect(Collectors.toList());
+
         DishSearchResult searchResult = new DishSearchResult();
         searchResult.setTotalRecordsFound((int) dishPage.getTotalElements());
         searchResult.setTotalPages(dishPage.getTotalPages());
         searchResult.setRecordsPerPage(pageSize);
+        searchResult.setRecords(searchResultItems); // Asignar los registros encontrados al resultado de búsqueda
 
         return searchResult;
+    }
+
+    private DishSearchResultItem mapDishToSearchResultItem(Dish dish) {
+        DishSearchResultItem item = new DishSearchResultItem();
+        item.setId(dish.getId());
+        item.setName(dish.getName());
+
+        // Aquí asigna el precio del plato a item, dependiendo de cómo obtengas ese valor en tu sistema
+        BigDecimal price = calculateSellPrice(dish); // Suponiendo que tienes un método para calcular el precio de venta
+        item.setPrice(price);
+
+        return item;
     }
 
     @Override

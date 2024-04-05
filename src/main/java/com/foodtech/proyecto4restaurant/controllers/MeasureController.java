@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
@@ -25,27 +26,27 @@ public class MeasureController {
     @Autowired
     MeasureService measureService;
     @PostMapping("/measures")
-    public ResponseEntity addMeasure(@RequestBody CreateMeasure createMeasure) {
+    public ResponseEntity<String> addMeasure(@RequestBody CreateMeasure createMeasure) {
         return handleRequest( ()-> measureService.addMeasure(createMeasure));
     }
 
     @DeleteMapping("/measures/{id}")
-    public ResponseEntity<AllergenDetails> deleteIngredient(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> measureService.deleteMeasure(id));
     }
 
     @GetMapping("/measures/{id}")
-    public ResponseEntity<AllergenDetails> getMeasure(@PathVariable Integer id) {
+    public ResponseEntity<MeasureDetails> getMeasure(@PathVariable Integer id) {
         return handleRequest( ()-> measureService.getMeasure(id));
     }
 
     @GetMapping("/measures")
-    public ResponseEntity<AllergenDetails> listMeasures(String filter) {
+    public ResponseEntity<List<MeasureDetails>> listMeasures(String filter) {
         return handleRequest( ()-> measureService.listMeasures(filter));
     }
 
     @PutMapping("/measures/{id}")
-    public ResponseEntity<AllergenDetails> updateIngredient(@PathVariable Integer id,@RequestBody UpdateMeasure updateMeasure) {
+    public ResponseEntity<String> updateIngredient(@PathVariable Integer id,@RequestBody UpdateMeasure updateMeasure) {
         return handleRequest( ()-> measureService.updateMeasure(id,updateMeasure));
     }
 }

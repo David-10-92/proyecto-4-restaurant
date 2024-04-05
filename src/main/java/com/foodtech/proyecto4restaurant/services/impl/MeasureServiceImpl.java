@@ -14,6 +14,7 @@ import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,18 +84,54 @@ public class MeasureServiceImpl implements MeasureService {
     }
 
     @Override
-    public List<Measure> listMeasures(String filter) {
+    public List<MeasureDetails> listMeasures(String filter) {
         List<Measure> allMeasures = measureRepository.findAll();
-        //este metodo es para que compruebe parcialmente no lo he probado por que no me funciona
-        //el proyecto por el tema de las entidades y las relaciones entre ellas
+        List<MeasureDetails> measureDetailsList = new ArrayList<>();
+
+        // Filtrar y ordenar las medidas si el filtro no es nulo ni vacío
         if (filter != null && !filter.isEmpty()) {
-            return allMeasures.stream()
+            allMeasures.stream()
                     .filter(measure -> measure.getName().toLowerCase().contains(filter.toLowerCase()))
-                    .sorted((m1, m2) -> m1.getName().compareToIgnoreCase(m2.getName())).collect(Collectors.toList());
+                    .sorted((m1, m2) -> m1.getName().compareToIgnoreCase(m2.getName()))
+                    .forEach(measure -> {
+                        MeasureDetails measureDetails = new MeasureDetails();
+                        measureDetails.setId(measure.getId());
+                        measureDetails.setName(measure.getName());
+
+                        List<MeasureDetails_allOf_ingredients> ingredientList = new ArrayList<>();
+                        measure.getIngredients().forEach(ingredient -> {
+                            MeasureDetails_allOf_ingredients ingredientDetails = new MeasureDetails_allOf_ingredients();
+                            ingredientDetails.setId(ingredient.getId());
+                            ingredientDetails.setName(ingredient.getName());
+                            // Configurar otros atributos si es necesario
+                            ingredientList.add(ingredientDetails);
+                        });
+                        measureDetails.setIngredients(ingredientList);
+
+                        measureDetailsList.add(measureDetails);
+                    });
         } else {
-            allMeasures.sort((m1, m2) -> m1.getName().compareToIgnoreCase(m2.getName()));
-            return allMeasures;
+            // Si no hay filtro, simplemente agregar todas las medidas a la lista de detalles
+            allMeasures.forEach(measure -> {
+                MeasureDetails measureDetails = new MeasureDetails();
+                measureDetails.setId(measure.getId());
+                measureDetails.setName(measure.getName());
+
+                List<MeasureDetails_allOf_ingredients> ingredientList = new ArrayList<>();
+                measure.getIngredients().forEach(ingredient -> {
+                    MeasureDetails_allOf_ingredients ingredientDetails = new MeasureDetails_allOf_ingredients();
+                    ingredientDetails.setId(ingredient.getId());
+                    ingredientDetails.setName(ingredient.getName());
+                    // Configurar otros atributos si es necesario
+                    ingredientList.add(ingredientDetails);
+                });
+                measureDetails.setIngredients(ingredientList);
+
+                measureDetailsList.add(measureDetails);
+            });
         }
+
+        return measureDetailsList;
     }
 
     @Override
