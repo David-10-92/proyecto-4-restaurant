@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/restaurant")
+@RequestMapping("/restaurant/measures")
 public class MeasureController {
 
     private <T> ResponseEntity handleRequest(Supplier<T> supplier){
@@ -25,27 +25,27 @@ public class MeasureController {
 
     @Autowired
     MeasureService measureService;
-    @PostMapping("/measures")
+    @PostMapping
     public ResponseEntity<String> addMeasure(@RequestBody CreateMeasure createMeasure) {
         return handleRequest( ()-> measureService.addMeasure(createMeasure));
     }
 
-    @DeleteMapping("/measures/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> measureService.deleteMeasure(id));
     }
 
-    @GetMapping("/measures/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<MeasureDetails> getMeasure(@PathVariable Integer id) {
         return handleRequest( ()-> measureService.getMeasure(id));
     }
 
-    @GetMapping("/measures")
+    @GetMapping
     public ResponseEntity<List<MeasureDetails>> listMeasures(String filter) {
         return handleRequest( ()-> measureService.listMeasures(filter));
     }
 
-    @PutMapping("/measures/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateIngredient(@PathVariable Integer id,@RequestBody UpdateMeasure updateMeasure) {
         return handleRequest( ()-> measureService.updateMeasure(id,updateMeasure));
     }

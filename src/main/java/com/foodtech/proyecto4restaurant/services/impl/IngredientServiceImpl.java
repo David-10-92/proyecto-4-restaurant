@@ -58,39 +58,11 @@ public class IngredientServiceImpl implements IngredientService {
         ingredientRepository.save(ingredient);
 
         return ingredient.getName();
-        /*if (createIngredient == null ||
-                createIngredient.getName() == null || createIngredient.getName().isEmpty() ||
-                createIngredient.getMeasureId() == null ||
-                createIngredient.getPurchasePrice() == null || createIngredient.getPurchasePrice().compareTo(BigDecimal.ZERO) <= 0 ||
-                createIngredient.getSellPrice() == null || createIngredient.getSellPrice().compareTo(BigDecimal.ZERO) <= 0 ||
-                createIngredient.getAllergens() == null || createIngredient.getAllergens().isEmpty()) {
-
-            throw new ServiceError(ErrorCode.INVALID_INPUT, "Los campos del ingrediente son inválidos o están vacíos");
-        }
-        Measure measure = getMeasure(createIngredient.getMeasureId());
-
-        // Obtener los IDs de alérgenos de la lista de alérgenos de createIngredient
-        List<Integer> allergenIds = createIngredient.getAllergens().stream()
-                .map(Allergen::getId)
-                .collect(Collectors.toList());
-
-        // Obtener la lista de objetos Allergen correspondientes a los IDs
-        List<Allergen> allergens = getAllergens(allergenIds);
-
-        Ingredient ingredient = new Ingredient();
-        ingredient.setName(createIngredient.getName());
-        ingredient.setMeasureId(measure);
-        ingredient.setPurchasePrice(createIngredient.getPurchasePrice());
-        ingredient.setSellPrice(createIngredient.getSellPrice());
-        ingredient.setAllergens(allergens);
-
-        ingredientRepository.save(ingredient);
-        return ingredient.getName();*/
     }
 
     private Measure getMeasure(Integer measureId) {
         return measureRepository.findById(measureId)
-                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "La medida especificada no existe"));
+                .orElseThrow(() -> new ServiceError(ErrorCode.INVALID_INPUT, "La medida especificada no existe"));
     }
 
     private List<Allergen> getAllergens(Set<Integer> allergenIds) {

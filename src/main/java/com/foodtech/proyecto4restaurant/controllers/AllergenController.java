@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/restaurant")
+@RequestMapping("/restaurant/allergens")
 public class AllergenController {
     private <T> ResponseEntity handleRequest(Supplier<T> supplier){
         try{
@@ -29,28 +29,28 @@ public class AllergenController {
     private AllergenService allergenService;
 
     // Agrega un nuevo alérgeno
-    @PostMapping("/allergens")
+    @PostMapping
     public ResponseEntity<String> addAllergen(@RequestBody CreateAllergen createAllergen) {
         return handleRequest( ()-> allergenService.addAllergen(createAllergen));
     }
 
 
-    @DeleteMapping("/allergens/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAllergen(@PathVariable Integer id) {
         return handleRequest( ()-> allergenService.deleteAllergen(id));
     }
 
-    @GetMapping("/allergens/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<AllergenDetails> getAllergen(@PathVariable Integer id) {
         return handleRequest( ()-> allergenService.getAllergen(id));
     }
 
-    @GetMapping("/allergens")
+    @GetMapping
     public ResponseEntity<List<AllergenDetails>> listAllergens(String filter) {
         return handleRequest( ()-> allergenService.listAllergens(filter));
     }
 
-    @PutMapping("/allergens/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateAllergen(@PathVariable Integer id,@RequestBody UpdateAllergen updateAllergen) {
         return handleRequest( ()-> allergenService.updateAllergen(id,updateAllergen));
     }

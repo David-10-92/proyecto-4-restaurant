@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/restaurant")
+@RequestMapping("/restaurant/ingredients")
 public class IngredientController {
 
     private <T> ResponseEntity handleRequest(Supplier<T> supplier){
@@ -26,27 +26,27 @@ public class IngredientController {
     @Autowired
     IngredientService ingredientService;
 
-    @PostMapping("/ingredients")
+    @PostMapping
     public ResponseEntity<String> addIngredient(@RequestBody CreateIngredient createIngredient) {
         return handleRequest( ()-> ingredientService.addIngredient(createIngredient));
     }
 
-    @DeleteMapping("/ingredients/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> ingredientService.deleteIngredient(id));
     }
 
-    @GetMapping("/ingredients/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<IngredientDetails> getIngredient(@PathVariable Integer id) {
         return handleRequest( ()-> ingredientService.getIngredient(id));
     }
 
-    @GetMapping("/ingredients")
+    @GetMapping
     public ResponseEntity<List<IngredientDetails>> listIngredients(String filter) {
         return handleRequest( ()-> ingredientService.listIngredients(filter));
     }
 
-    @PutMapping("/ingredients/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateIngredient(@PathVariable Integer id,@RequestBody UpdateIngredient updateIngredient) {
         return handleRequest( ()-> ingredientService.updateIngredient(id,updateIngredient));
     }

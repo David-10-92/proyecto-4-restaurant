@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -86,52 +87,33 @@ public class MeasureServiceImpl implements MeasureService {
     @Override
     public List<MeasureDetails> listMeasures(String filter) {
         List<Measure> allMeasures = measureRepository.findAll();
-        List<MeasureDetails> measureDetailsList = new ArrayList<>();
 
-        // Filtrar y ordenar las medidas si el filtro no es nulo ni vacío
-        if (filter != null && !filter.isEmpty()) {
-            allMeasures.stream()
-                    .filter(measure -> measure.getName().toLowerCase().contains(filter.toLowerCase()))
-                    .sorted((m1, m2) -> m1.getName().compareToIgnoreCase(m2.getName()))
-                    .forEach(measure -> {
-                        MeasureDetails measureDetails = new MeasureDetails();
-                        measureDetails.setId(measure.getId());
-                        measureDetails.setName(measure.getName());
+        return allMeasures.stream()
+                .filter(measure -> filter == null || filter.isEmpty() || measure.getName().toLowerCase().contains(filter.toLowerCase()))
+                .sorted(Comparator.comparing(Measure::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::mapToMeasureDetails)
+                .collect(Collectors.toList());
+    }
 
-                        List<MeasureDetails_allOf_ingredients> ingredientList = new ArrayList<>();
-                        measure.getIngredients().forEach(ingredient -> {
-                            MeasureDetails_allOf_ingredients ingredientDetails = new MeasureDetails_allOf_ingredients();
-                            ingredientDetails.setId(ingredient.getId());
-                            ingredientDetails.setName(ingredient.getName());
-                            // Configurar otros atributos si es necesario
-                            ingredientList.add(ingredientDetails);
-                        });
-                        measureDetails.setIngredients(ingredientList);
+    private MeasureDetails mapToMeasureDetails(Measure measure) {
+        MeasureDetails measureDetails = new MeasureDetails();
+        measureDetails.setId(measure.getId());
+        measureDetails.setName(measure.getName());
+        measureDetails.setIngredients(mapToIngredientDetails(measure.getIngredients()));
+        return measureDetails;
+    }
 
-                        measureDetailsList.add(measureDetails);
-                    });
-        } else {
-            // Si no hay filtro, simplemente agregar todas las medidas a la lista de detalles
-            allMeasures.forEach(measure -> {
-                MeasureDetails measureDetails = new MeasureDetails();
-                measureDetails.setId(measure.getId());
-                measureDetails.setName(measure.getName());
+    private List<MeasureDetails_allOf_ingredients> mapToIngredientDetails(List<Ingredient> ingredients) {
+        return ingredients.stream()
+                .map(this::fromIngredient)
+                .collect(Collectors.toList());
+    }
 
-                List<MeasureDetails_allOf_ingredients> ingredientList = new ArrayList<>();
-                measure.getIngredients().forEach(ingredient -> {
-                    MeasureDetails_allOf_ingredients ingredientDetails = new MeasureDetails_allOf_ingredients();
-                    ingredientDetails.setId(ingredient.getId());
-                    ingredientDetails.setName(ingredient.getName());
-                    // Configurar otros atributos si es necesario
-                    ingredientList.add(ingredientDetails);
-                });
-                measureDetails.setIngredients(ingredientList);
-
-                measureDetailsList.add(measureDetails);
-            });
-        }
-
-        return measureDetailsList;
+    public MeasureDetails_allOf_ingredients fromIngredient(Ingredient ingredient){
+        MeasureDetails_allOf_ingredients dto = new MeasureDetails_allOf_ingredients();
+        dto.setName(ingredient.getName());
+        dto.setId(ingredient.getId());
+        return dto;
     }
 
     @Override
