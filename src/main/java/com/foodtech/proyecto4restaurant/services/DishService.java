@@ -4,6 +4,9 @@ import com.foodtech.proyecto4restaurant.dtos.CreateDish;
 import com.foodtech.proyecto4restaurant.dtos.DishDetails;
 import com.foodtech.proyecto4restaurant.dtos.DishSearchResult;
 import com.foodtech.proyecto4restaurant.dtos.UpdateDish;
+import com.foodtech.proyecto4restaurant.models.Dish;
+
+import java.util.List;
 
 public interface DishService {
     String addDish(CreateDish createDish);
