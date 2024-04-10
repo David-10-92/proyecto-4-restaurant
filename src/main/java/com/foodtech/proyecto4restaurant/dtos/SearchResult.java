@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,4 +16,5 @@ public class SearchResult {
     private Integer totalPages;
 //    Indica cuantos registros hay por página de resultados
     private Integer recordsPerPage;
+
 }

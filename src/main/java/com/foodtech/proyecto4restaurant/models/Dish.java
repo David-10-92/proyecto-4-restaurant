@@ -26,6 +26,6 @@ public class Dish {
     //    Indica el número de comensales indicados para este plato (orientativo)
     private Integer dinners;
     //    Lista de ingredientes que incorpora este plato
-    @OneToMany(mappedBy = "dish")
+    @OneToMany(mappedBy = "dish", cascade = CascadeType.ALL)
     private List<AmountOfIngredient> amountsOfIngredients;
 }

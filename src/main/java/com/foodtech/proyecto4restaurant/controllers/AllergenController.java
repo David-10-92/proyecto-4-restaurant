@@ -3,6 +3,7 @@ package com.foodtech.proyecto4restaurant.controllers;
 import com.foodtech.proyecto4restaurant.dtos.AllergenDetails;
 import com.foodtech.proyecto4restaurant.dtos.CreateAllergen;
 import com.foodtech.proyecto4restaurant.dtos.UpdateAllergen;
+import com.foodtech.proyecto4restaurant.models.Allergen;
 import com.foodtech.proyecto4restaurant.services.AllergenService;
 import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +11,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/restaurant")
+@RequestMapping("/restaurant/allergens")
 public class AllergenController {
     private <T> ResponseEntity handleRequest(Supplier<T> supplier){
         try{
@@ -27,31 +29,30 @@ public class AllergenController {
     private AllergenService allergenService;
 
     // Agrega un nuevo alérgeno
-    @PostMapping("/allergens")
-    public ResponseEntity addAllergen(@RequestBody CreateAllergen createAllergen) {
+    @PostMapping
+    public ResponseEntity<String> addAllergen(@RequestBody CreateAllergen createAllergen) {
         return handleRequest( ()-> allergenService.addAllergen(createAllergen));
     }
 
 
-    @DeleteMapping("/ingredients/{id}")
-    public ResponseEntity<AllergenDetails> deleteAllergen(@PathVariable Integer id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAllergen(@PathVariable Integer id) {
         return handleRequest( ()-> allergenService.deleteAllergen(id));
     }
 
-    @GetMapping("/allergens/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<AllergenDetails> getAllergen(@PathVariable Integer id) {
         return handleRequest( ()-> allergenService.getAllergen(id));
     }
 
-    @GetMapping("/allergens")
-    public ResponseEntity<AllergenDetails> listAllergens(String filter) {
+    @GetMapping
+    public ResponseEntity<List<AllergenDetails>> listAllergens(String filter) {
         return handleRequest( ()-> allergenService.listAllergens(filter));
     }
 
-    @PutMapping("/allergens/{id}")
-    public ResponseEntity<AllergenDetails> updateAllergen(@PathVariable Integer id,@RequestBody UpdateAllergen updateAllergen) {
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateAllergen(@PathVariable Integer id,@RequestBody UpdateAllergen updateAllergen) {
         return handleRequest( ()-> allergenService.updateAllergen(id,updateAllergen));
     }
-
 
 }

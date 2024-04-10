@@ -5,17 +5,14 @@ import com.foodtech.proyecto4restaurant.models.*;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.IngredientRepository;
 import com.foodtech.proyecto4restaurant.repositories.MeasureRepository;
-import com.foodtech.proyecto4restaurant.services.AllergenService;
 import com.foodtech.proyecto4restaurant.services.IngredientService;
+import com.foodtech.proyecto4restaurant.services.errors.ErrorCode;
+import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,16 +27,26 @@ public class IngredientServiceImpl implements IngredientService {
     AllergenRepository allergenRepository;
     @Override
     public String addIngredient(CreateIngredient createIngredient) {
+        if (createIngredient == null ||
+                createIngredient.getName() == null || createIngredient.getName().isEmpty() ||
+                createIngredient.getMeasureId() == null ||
+                createIngredient.getPurchasePrice() == null || createIngredient.getPurchasePrice().compareTo(BigDecimal.ZERO) <= 0 ||
+                createIngredient.getSellPrice() == null || createIngredient.getSellPrice().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "Los campos del ingrediente son inválidos o están vacíos");
+        }
+
         Measure measure = getMeasure(createIngredient.getMeasureId());
 
-        // Obtener los IDs de alérgenos de la lista de alérgenos de createIngredient
-        List<Integer> allergenIds = createIngredient.getAllergens().stream()
+        // Obtener los IDs de los alérgenos únicos
+        Set<Integer> allergenIds = createIngredient.getAllergens().stream()
                 .map(Allergen::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-        // Obtener la lista de objetos Allergen correspondientes a los IDs
+        // Obtener los objetos Allergen correspondientes a los IDs
         List<Allergen> allergens = getAllergens(allergenIds);
 
+        // Crear el objeto Ingredient y establecer sus propiedades
         Ingredient ingredient = new Ingredient();
         ingredient.setName(createIngredient.getName());
         ingredient.setMeasureId(measure);
@@ -47,33 +54,44 @@ public class IngredientServiceImpl implements IngredientService {
         ingredient.setSellPrice(createIngredient.getSellPrice());
         ingredient.setAllergens(allergens);
 
+        // Guardar el ingrediente en la base de datos
         ingredientRepository.save(ingredient);
+
         return ingredient.getName();
     }
+
     private Measure getMeasure(Integer measureId) {
         return measureRepository.findById(measureId)
-                .orElseThrow(() -> new RuntimeException("La medida especificada no existe."));
+                .orElseThrow(() -> new ServiceError(ErrorCode.INVALID_INPUT, "La medida especificada no existe"));
     }
 
-    private List<Allergen> getAllergens(List<Integer> id) {
-        List<Allergen> allergens = allergenRepository.findAllById(id);
-        if (allergens.size() != id.size()) {
-            throw new RuntimeException("Al menos uno de los IDs especificados no existe.");
+    private List<Allergen> getAllergens(Set<Integer> allergenIds) {
+        List<Allergen> foundAllergens = allergenRepository.findAllById(allergenIds);
+
+        if (foundAllergens.size() != allergenIds.size()) {
+            throw new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "Al menos uno de los IDs de alérgenos especificados no existe.");
         }
-        return allergens;
+
+        return foundAllergens;
     }
 
     @Override
     public String deleteIngredient(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del ingrediente es inválido");
+        }
         Optional<Ingredient> optionalIngredient = ingredientRepository.findById(id);
         return optionalIngredient.map(ingredient -> {
             ingredientRepository.deleteById(id);
             return ("El ingrediente se ha eliminado correctamente");
-        }).orElse("No se encontró ningún ingrediente con el ID proporcionado");
+        }).orElseThrow(()-> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND,"No se encontró ningún ingrediente con el ID proporcionado"));
     }
 
     @Override
     public IngredientDetails getIngredient(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del ingrediente es inválido");
+        }
         Optional<Ingredient> optionalIngredient = ingredientRepository.findById(id);
         if (optionalIngredient.isPresent()) {
             Ingredient ingredient = optionalIngredient.get();
@@ -93,7 +111,7 @@ public class IngredientServiceImpl implements IngredientService {
 
             return ingredientDetails;
         } else {
-            return null;
+            throw new ServiceError(ErrorCode.RESOURCE_NOT_FOUND,"No se encontró ningún ingrediente con el ID proporcionado");
         }
     }
 
@@ -164,8 +182,11 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     public String updateIngredient(Integer id, UpdateIngredient updateIngredient) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del ingrediente es inválido");
+        }
         Measure measure = measureRepository.findById(updateIngredient.getMeasureId())
-                .orElseThrow(() -> new RuntimeException("La medida especificada no existe."));
+                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND,"La medida especificada no existe."));
         return ingredientRepository.findById(id)
                 .map(ingredient -> {
                     if (updateIngredient.getName() != null) {
@@ -185,6 +206,8 @@ public class IngredientServiceImpl implements IngredientService {
                     }
                     ingredientRepository.save(ingredient);
                     return "El ingrediente se ha actualizado correctamente";
-                }).orElse("No se encontró ningún ingrediente con el ID proporcionado");
+                })
+                .orElseThrow(()-> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND,"No se encontró ningún ingrediente con el ID proporcionado"));
+
     }
 }

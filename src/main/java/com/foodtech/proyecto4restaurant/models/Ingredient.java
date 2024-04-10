@@ -18,7 +18,8 @@ public class Ingredient {
     private Integer id;
 //    Nombre del ingrediente
     private String name;
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "measure_id")
 //    Identificador de la unidad de medida en la que se administra este ingrediente
     private Measure measureId;
 //    Indica el valor del precio de compra de cada unidad de este ingrediente.

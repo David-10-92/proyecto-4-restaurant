@@ -11,7 +11,7 @@ public interface MeasureService {
     String addMeasure(CreateMeasure createMeasure);
     String deleteMeasure(Integer id);
     MeasureDetails getMeasure(Integer id);
-    List<Measure> listMeasures(String filter);
+    List<MeasureDetails> listMeasures(String filter);
     String updateMeasure(Integer id, UpdateMeasure updateMeasure);
 
 }

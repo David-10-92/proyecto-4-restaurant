@@ -10,6 +10,8 @@ import com.foodtech.proyecto4restaurant.models.Dish;
 import com.foodtech.proyecto4restaurant.repositories.AllergenRepository;
 import com.foodtech.proyecto4restaurant.repositories.DishRepository;
 import com.foodtech.proyecto4restaurant.services.AllergenService;
+import com.foodtech.proyecto4restaurant.services.errors.ErrorCode;
+import com.foodtech.proyecto4restaurant.services.errors.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Sort;
@@ -26,6 +28,9 @@ public class AllergenServiceImpl implements AllergenService{
     DishRepository dishRepository;
     @Override
     public String addAllergen(CreateAllergen createAllergen) {
+        if (createAllergen.getName() == null || createAllergen.getName().isEmpty()) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El nombre del alérgeno no puede estar vacío");
+        }
         Allergen allergen = new Allergen();
         allergen.setName(createAllergen.getName());
         allergenRepository.save(allergen);
@@ -37,11 +42,14 @@ public class AllergenServiceImpl implements AllergenService{
         return allergenRepository.findById(id).map(allergen -> {
             allergenRepository.deleteById(id);
             return ("El alergeno se ha eliminado correctamente");
-        }).orElse("No se encontró ningún allergeno con el ID proporcionado");
+        }).orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ningún alérgeno con el ID proporcionado"));
     }
 
     @Override
     public AllergenDetails getAllergen(Integer id) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El id no puede ser nulo o ser 0");
+        }
         Optional<Allergen> optionalAllergen = allergenRepository.findById(id);
         if (optionalAllergen.isPresent()) {
             Allergen allergen = optionalAllergen.get();
@@ -50,8 +58,9 @@ public class AllergenServiceImpl implements AllergenService{
             allergenDetails.setName(allergen.getName());
             allergenDetails.setPresentIn(getPlatesWithAllergen(allergen));
             return allergenDetails;
+        }else{
+            throw new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ningún alérgeno con el ID proporcionado");
         }
-        return null;
     }
 
     private List<AllergenDetails_allOf_presentIn> getPlatesWithAllergen(Allergen allergen) {
@@ -72,21 +81,33 @@ public class AllergenServiceImpl implements AllergenService{
     }
 
     @Override
-    public List<Allergen> listAllergens(String filter) {
+    public List<AllergenDetails> listAllergens(String filter) {
         List<Allergen> filterAllergens;
         if (filter != null && !filter.isEmpty()) {
-            filterAllergens = allergenRepository.findAll().stream()
-                    .filter(allergen -> allergen.getName().toLowerCase().contains(filter.toLowerCase()))
-                    .sorted(Comparator.comparing(Allergen::getName))
-                    .collect(Collectors.toList());
+            filterAllergens = allergenRepository.findByNameContainingIgnoreCase(filter);
         } else {
             filterAllergens = allergenRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
         }
-        return filterAllergens;
+        return filterAllergens.stream()
+                .map(this::mapToAllergenDetails)
+                .collect(Collectors.toList());
+    }
+
+    private AllergenDetails mapToAllergenDetails(Allergen allergen) {
+        AllergenDetails allergenDetails = new AllergenDetails();
+        allergenDetails.setId(allergen.getId());
+        allergenDetails.setName(allergen.getName());
+        // Aquí debes completar la lógica para obtener los platos donde el alérgeno está presente
+        // List<Dish> dishes = getDishesByAllergen(allergen);
+        // allergenDetails.setPresentIn(mapDishesToAllergenDetails(dishes));
+        return allergenDetails;
     }
 
     @Override
     public String updateAllergen(Integer id, UpdateAllergen updateAllergen) {
+        if (id == null || id <= 0) {
+            throw new ServiceError(ErrorCode.INVALID_INPUT, "El ID del alérgeno es inválido");
+        }
         return allergenRepository.findById(id)
                 .map(allergen -> {
                     if (updateAllergen.getName() != null) {
@@ -95,6 +116,6 @@ public class AllergenServiceImpl implements AllergenService{
                     allergenRepository.save(allergen);
                     return "El alérgeno se ha actualizado correctamente";
                 })
-                .orElse("No se encontró ningún alérgeno con el ID proporcionado");
+                .orElseThrow(() -> new ServiceError(ErrorCode.RESOURCE_NOT_FOUND, "No se encontró ningún alérgeno con el ID proporcionado"));
     }
 }
